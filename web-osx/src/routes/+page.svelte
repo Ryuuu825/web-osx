@@ -16,7 +16,7 @@
     on:keydown={e => {
         if (e.key === "Enter") {
             if (inputElement.value === PASSWORD) {
-                window.location.href = "/home";
+                window.location.href = `${base}/home`;
             } else {
                 inputElement.value = "";
                 inputGroupElement.classList.add("animate-shake-horizontal")

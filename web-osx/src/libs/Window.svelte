@@ -14,13 +14,11 @@
             _window.remove();
         }
     };
-    export let stack : Stack<WindowState>;
-
+    export let stack: Stack<WindowState>;
 
     let _window: HTMLElement; // reference to the window element, can be accessed from outside
     let offsetX = 0;
     let offsetY = 0;
-
 
     function grab(clientX: number, clientY: number) {
         if (_window) {
@@ -30,7 +28,9 @@
 
             handleWindowClick();
             // restore all the windows to their previous z index
-            const allWindows = document.querySelectorAll(".window") as NodeListOf<HTMLElement>;
+            const allWindows = document.querySelectorAll(
+                ".window"
+            ) as NodeListOf<HTMLElement>;
             allWindows.forEach((window) => {
                 window.style.zIndex = window.dataset.zindex as string;
             });
@@ -65,21 +65,99 @@
         stack.moveToTop(windowState);
     };
 
-    onMount(async() => {
-        _window?.setAttribute("data-zIndex", windowState.zIndex.toString());
-    });
+    let resizeDirection: string = "";
+
+    const handleWindowSizeChange = (
+        direction:
+            | "top"
+            | "bottom"
+            | "left"
+            | "right"
+            | "top-left"
+            | "top-right"
+            | "bottom-left"
+            | "bottom-right"
+    ) => {
+        resizeDirection = direction;
+        document.addEventListener("mousemove", resize);
+    };
+
+    const resize = (ev: MouseEvent) => {
+        ev.preventDefault();
+        if (resizeDirection === "top") {
+            windowState.height += windowState.y - ev.clientY;
+            windowState.y = ev.clientY;
+        } else if (resizeDirection === "bottom") {
+            windowState.height = ev.clientY - windowState.y;
+        } else if (resizeDirection === "left") {
+            windowState.width += windowState.x - ev.clientX;
+            windowState.x = ev.clientX;
+        } else if (resizeDirection === "right") {
+            windowState.width = ev.clientX - windowState.x;
+        } else if (resizeDirection === "top-left") {
+            windowState.height += windowState.y - ev.clientY;
+            windowState.y = ev.clientY;
+            windowState.width += windowState.x - ev.clientX;
+            windowState.x = ev.clientX;
+        } else if (resizeDirection === "top-right") {
+            windowState.height += windowState.y - ev.clientY;
+            windowState.y = ev.clientY;
+            windowState.width = ev.clientX - windowState.x;
+        } else if (resizeDirection === "bottom-left") {
+            windowState.height = ev.clientY - windowState.y;
+            windowState.width += windowState.x - ev.clientX;
+            windowState.x = ev.clientX;
+        } else if (resizeDirection === "bottom-right") {
+            windowState.height = ev.clientY - windowState.y;
+            windowState.width = ev.clientX - windowState.x;
+        }
+    };
 </script>
 
 <div
     class="window fixed rounded-xl overflow-hidden shadow-lg w-fit h-fit border border-gray-500"
     bind:this={_window}
     style={windowState.getStyleString()}
-    data-zIndex={windowState._zIndex || '1' }
+    data-zIndex={windowState._zIndex || "1"}
     on:mousedown={function (ev) {
-        ev.stopPropagation();
         handleWindowClick();
     }}
 >
+    <div class="window-resize">
+        <div
+            class="window-resize-handle absolute bottom-0 right-0 w-3 h-3 cursor-se-resize"
+        />
+        <div
+            class="window-resize-handle absolute bottom-0 left-0 w-0.5 h-0.5 rounded-full  cursor-sw-resize"
+        />
+        <div
+            class="window-resize-handle absolute top-0 right-0 w-0.5 h-0.5 rounded-full  cursor-ne-resize "
+        />
+        <div
+            class="window-resize-handle absolute top-0 left-0 w-0.5 h-0.5 rounded-full cursor-nw-resize "
+        />
+
+        <div
+            class="window-resize-handle absolute bottom-0 left-0 w-full h-0.5 cursor-s-resize "
+            on:mousedown={function (ev) {
+                handleWindowSizeChange("bottom");
+                document.onmouseup = function (ev) {
+                    document.removeEventListener("mousemove", resize);
+                };
+            }}
+        />
+
+        <div
+            class="window-resize-handle absolute top-0 w-full h-0.5 cursor-n-resize "
+        />
+        <div
+            class="window-resize-handle absolute left-0 w-0.5 h-full cursor-w-resize"
+        />
+        <div
+            class="window-resize-handle absolute right-0 w-0.5 h-full cursor-e-resize"
+        />
+    </div>
+
     <div
         class="window-header text-gray-100 p-2 flex flex-row"
         on:mousedown={function (ev) {
@@ -135,7 +213,7 @@
             {windowState.windowName}
         </div>
     </div>
-    <div>
+    <div class="w-full h-full overflow-hidden">
         {#if frameElement}
             <svelte:component this={frameElement} {...pros} />
         {/if}
@@ -145,6 +223,5 @@
 <style>
     :global(.window) {
         background-color: #212529;
-        transition: width 0.4s ease-in-out, height 0.4s ease-in-out;
     }
 </style>

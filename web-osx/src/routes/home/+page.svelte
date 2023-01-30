@@ -2,12 +2,12 @@
     export const prerender = true;
     import "../../app.css";
     import { base } from "$app/paths";
-    import { setContext } from "svelte";
 
 
     import Window from "../../libs/Window.svelte";
     import { WindowState } from "../../libs/WindowState";
     import Stack from "../../libs/Stack";
+    import github from "../../libs/apps/github.svelte";
 
     let test_window_state = new WindowState(720, 480, 600,300, 1 , "normal", "Testing"  );
     let test_window2_state = new WindowState(720, 480, 300,100, 2 , "normal", "Testing"  );
@@ -17,8 +17,6 @@
     stack.push(test_window_state);
     stack.push(test_window2_state);
     stack.push(test_window3_state);
-
-    setContext("stackCtx", stack );
 
 </script>
 
@@ -31,8 +29,12 @@
 
         <Window
             windowState={test_window_state}
-            frameElement={null}
+            frameElement={github}
             stack={stack}
+            pros={{
+                width: test_window_state.width,
+                height: test_window_state.height,
+            }}
         />
 
         <Window
